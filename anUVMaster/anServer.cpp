@@ -64,6 +64,7 @@ int anServer::init()
 		uv_free_cpu_info(cpuinfos, worker_count_);
 	}
 	
+	worker_count_ = 1;
 	return r;
 }
 
@@ -88,16 +89,14 @@ int anServer::setup_workers()
 
 	workers_ = (anWorker_handle*)calloc(worker_count_, sizeof(anWorker_handle));
 	int count = worker_count_;
-	while (--count && workers_) {
+	while (count--) {
 		anWorker_handle* worker = &workers_[count];
-
 		uv_pipe_init(loop_, &worker->pipe_, 1/*ipc*/);
-		uv_stdio_container_t child_stdio[3];
 
-		child_stdio[0].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE);
+		uv_stdio_container_t child_stdio[3];
+		child_stdio[0].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
 		child_stdio[0].data.stream = (uv_stream_t*)&worker->pipe_;
 		child_stdio[1].flags = (uv_stdio_flags)(UV_IGNORE);
-		child_stdio[1].data.stream = nullptr;
 		child_stdio[2].flags = (uv_stdio_flags)(UV_INHERIT_FD);
 		child_stdio[2].data.fd=2;
 
@@ -112,8 +111,12 @@ int anServer::setup_workers()
 		if (r) {
 			anuv::getlogger()->error(", uv_spawn()={}, {}", r, anuv::getUVError_Info(r));
 		}
+		else {
+			log += fmt::format(",worker[{}] pid={} ", count, worker->req_.pid);
+		}
 	}
 
+	anuv::getlogger()->info(log);
 
 	return r;
 }
@@ -233,7 +236,6 @@ void anServer::on_new_connection(uv_stream_t * server, int status)
 		return;
 	}
 
-	//log += fmt::format("worker_index={}, client={:#08x}", sessionid, (int)client);
 	anuv::getlogger()->info(log);
 
 }

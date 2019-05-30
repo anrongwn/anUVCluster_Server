@@ -32,10 +32,6 @@ private:
 
 			buf = uv_buf_init(const_cast<char*>("."), 1);
 		}
-
-
-
-
 		an_write_req() = delete;
 	};
 private:

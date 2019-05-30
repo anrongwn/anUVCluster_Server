@@ -3,10 +3,29 @@
 
 #include "pch.h"
 #include <iostream>
+#include "anWorker.h"
 
 int main()
 {
-    std::cout << "Hello World!\n"; 
+	std::string log = fmt::format("main start...");
+	int r = 0;
+
+	anWorker server;
+	r = server.start();
+	log += fmt::format("server.start()={}", r);
+	anuv::getlogger()->info(log);
+
+	r = server.run();
+	log += fmt::format(",server.run()={}", r);
+	anuv::getlogger()->info(log);
+
+
+	r = server.wait_exit();
+	log += fmt::format(",server.wait_exit()={}", r);
+
+	anuv::getlogger()->info(log);
+
+	return r;
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

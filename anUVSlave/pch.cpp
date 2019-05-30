@@ -28,8 +28,11 @@ anuv::anlogger& anuv::getlogger() {
 		std::string logpath(szpath, len);
 		auto pos = logpath.find_last_of('\\');
 		logpath = logpath.substr(0, pos + 1);
-
-		logpath += R"(logs\anUVServer.log)";
+		uv_pid_t pid = uv_os_getpid();
+		logpath += R"(logs\anUVSlave-)";
+		logpath += std::to_string(pid);
+		logpath += R"(.log)";
+		
 
 		//是否已启动日志线程池?
 		auto tp = spdlog::thread_pool();
