@@ -2,12 +2,24 @@
 //
 
 #include "pch.h"
+#include <stdio.h>
 #include <iostream>
 #include "anServer.h"
 
 int main()
 {
 	int r = 0;
+
+	/*//stdin,stdout,stderr info
+	struct stat stats;
+	fstat(_fileno(stdin), &stats);
+	fstat(_fileno(stdout), &stats);
+	fstat(_fileno(stderr), &stats);
+	r = setvbuf(stdin, nullptr, _IOLBF, 1024);
+	fstat(_fileno(stdin), &stats);
+	*/
+
+	
 	std::string log = fmt::format("main start...");
 
 	anServer server;
