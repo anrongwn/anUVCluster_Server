@@ -10,6 +10,8 @@ anMee2::anMee2(uv_loop_t * loop) : loop_(loop)
 
 anMee2::~anMee2()
 {
+	std::string log = fmt::format("anMee2::~anMee2()");
+	anuv::getlogger()->info(log);
 }
 
 void anMee2::on_work(uv_work_t * req)
@@ -56,7 +58,6 @@ int anMee2::push_work(anTcpSocket * socket)
 {
 	int r = 0;
 	std::string log = fmt::format("anMee2::push_work({:#08x}), ", (int)socket);
-
 
 	an_work_req *work = new an_work_req(socket);
 	r = uv_queue_work(this->loop_, work, anMee2::on_work, anMee2::on_after_work);

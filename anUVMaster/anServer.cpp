@@ -64,7 +64,7 @@ int anServer::init()
 		uv_free_cpu_info(cpuinfos, worker_count_);
 	}
 	
-	worker_count_ = 1;
+	//worker_count_ = 1;
 	return r;
 }
 
@@ -94,7 +94,7 @@ int anServer::setup_workers()
 		uv_pipe_init(loop_, &worker->pipe_, 1/*ipc*/);
 
 		uv_stdio_container_t child_stdio[3];
-		child_stdio[0].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
+		child_stdio[0].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE); //UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE
 		child_stdio[0].data.stream = (uv_stream_t*)&worker->pipe_;
 		child_stdio[1].flags = (uv_stdio_flags)(UV_IGNORE);
 		child_stdio[2].flags = (uv_stdio_flags)(UV_INHERIT_FD);
@@ -227,7 +227,9 @@ void anServer::on_new_connection(uv_stream_t * server, int status)
 	anWorker_handle * server_worker = that->get_server_worker();
 	an_write_req * write_req = new an_write_req(that);
 
-	r = uv_write2((uv_write_t*)write_req, (uv_stream_t*)&server_worker->pipe_, &write_req->buf, 1, (uv_stream_t*)client, anServer::on_write);
+	log += fmt::format("client={:#08x}, write_req={:#08x}, worker pid={}", (int)client, (int)write_req, server_worker->req_.pid);
+	r = uv_write2((uv_write_t*)write_req, (uv_stream_t*)&server_worker->pipe_, \
+		&write_req->buf, 1, (uv_stream_t*)client, anServer::on_write);	//send connect socket handle
 	if (r) {
 		log += fmt::format("uv_write2({:#08x}, {:#08x})={},{}", (int)write_req, (int)client, r, anuv::getUVError_Info(r));
 		anuv::getlogger()->error(log);

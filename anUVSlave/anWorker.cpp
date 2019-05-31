@@ -6,6 +6,7 @@
 
 anWorker::anWorker()
 {
+	
 }
 
 
@@ -85,15 +86,16 @@ int anWorker::init()
 	if (std::atomic_exchange(&init_, true)) return r;
 
 	uv_loop_ = uv_default_loop();
+	message_handler2_ = std::make_unique<anMee2>(uv_loop_);
 
-	r = uv_pipe_init(uv_loop_, &uv_server_, 1);
+	r = uv_pipe_init(uv_loop_, &uv_server_, 1/*ipc*/);
 	if (r) {
 		anuv::getlogger()->error("anWorker::init()--uv_pipe_init={}, {}", r, anuv::getUVError_Info(r));
 		return r;
 	}
 	uv_server_.data = this;
 
-	r = uv_pipe_open(&uv_server_, 0);//stdin
+	r = uv_pipe_open(&uv_server_, 0);//open stdin
 	if (r) {
 		anuv::getlogger()->error("anWorker::init()--uv_pipe_open={}, {}", r, anuv::getUVError_Info(r));
 		return r;
@@ -186,9 +188,9 @@ void anWorker::on_new_connection(uv_stream_t * q, ssize_t nread, const uv_buf_t 
 
 void anWorker::alloc_buffer(uv_handle_t * handle, size_t suggested_size, uv_buf_t * buf)
 {
-	std::string log = fmt::format("anWorker::alloc_buffer({:#08x}, {})", (int)handle, suggested_size);
+	//std::string log = fmt::format("anWorker::alloc_buffer({:#08x}, {})", (int)handle, suggested_size);
 	if (handle->type == UV_TCP) {
-		log += fmt::format(", handle->type == UV_TCP");
+		//log += fmt::format(", handle->type == UV_TCP");
 		anTcpSocket * client = reinterpret_cast<anTcpSocket*>(handle);
 		if (client) {
 			*buf = client->read_buffer_;
@@ -196,11 +198,11 @@ void anWorker::alloc_buffer(uv_handle_t * handle, size_t suggested_size, uv_buf_
 	}
 
 	if (handle->type == UV_NAMED_PIPE) {
-		log += fmt::format(", handle->type == UV_NAMED_PIPE");
+		//log += fmt::format(", handle->type == UV_NAMED_PIPE");
 		buf->base = (char *)malloc(suggested_size);
 		buf->len = suggested_size;
 	}
-	anuv::getlogger()->info(log);
+	//anuv::getlogger()->info(log);
 }
 
 void anWorker::on_read(uv_stream_t * socket, ssize_t nread, const uv_buf_t * buf)
