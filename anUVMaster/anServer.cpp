@@ -9,6 +9,7 @@ anServer::anServer()
 
 anServer::~anServer()
 {
+	free_workers();
 }
 
 int anServer::init()
@@ -87,7 +88,8 @@ int anServer::setup_workers()
 	log += tmp;
 	
 
-	workers_ = (anWorker_handle*)calloc(worker_count_, sizeof(anWorker_handle));
+	//workers_ = (anWorker_handle*)calloc(worker_count_, sizeof(anWorker_handle));
+	calloc_workers(worker_count_);
 	int count = worker_count_;
 	while (count--) {
 		anWorker_handle* worker = &workers_[count];
@@ -312,6 +314,8 @@ void anServer::on_signal(uv_signal_t * handle, int signum)
 	uv_close((uv_handle_t*)&that->server_, nullptr);
 
 	uv_signal_stop(handle);
+
+	that->free_workers();
 
 	anuv::getlogger()->info(log);
 }

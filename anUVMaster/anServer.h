@@ -56,6 +56,19 @@ private:
 		counter = ((counter + 1) % worker_count_);
 
 		return &workers_[counter];
+
+	}
+	
+	anWorker_handle * calloc_workers(int count){
+		workers_ = (anWorker_handle*)calloc(count, sizeof(anWorker_handle));
+		return workers_;
+	}
+
+	void free_workers() {
+		if (workers_) {
+			free(workers_);
+			workers_ = nullptr;
+		}
 	}
 private:
 	anWorker_handle * workers_ = { nullptr };
