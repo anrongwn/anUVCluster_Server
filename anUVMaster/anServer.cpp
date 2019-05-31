@@ -121,6 +121,22 @@ int anServer::setup_workers()
 	return r;
 }
 
+int anServer::kill_workers()
+{
+	int r = 0;
+	std::string log = fmt::format("anServer::kill_workers, ");
+	anWorker_handle * worker = nullptr;
+	for (int i = 0; i < worker_count_; ++i) {
+		worker = &workers_[i];
+		if (worker) {
+			r = uv_process_kill(&worker->req_, SIGTERM);
+			log += fmt::format(",worker[{}] pid={}, r={} ", i, worker->req_.pid, r);
+		}
+	}
+	anuv::getlogger()->info(log);
+	return r;
+}
+
 int anServer::start(const char * addr, const unsigned short port)
 {
 	int r = 0;
@@ -282,7 +298,11 @@ void anServer::on_signal(uv_signal_t * handle, int signum)
 {
 	std::string log = fmt::format("anServer::on_signal({:#08x}, {}), ", (int)handle, signum);
 	int r = 0;
+	
 	anServer * that = reinterpret_cast<anServer *>(handle->data);
+
+
+	r = that->kill_workers();
 
 	//shutdown
 	//r = that->shutdown();
@@ -298,7 +318,8 @@ void anServer::on_signal(uv_signal_t * handle, int signum)
 
 void anServer::close_process_handle(uv_process_t * req, int64_t exit_status, int term_signal)
 {
-	std::string log = fmt::format("anServer::close_process_handle({:#08x}, {}, {}), ", (int)req, exit_status, term_signal);
+	std::string log = fmt::format("anServer::close_process_handle({:#08x}, {}, {}£¬ pid={}), ", \
+		(int)req, exit_status, term_signal, req->pid);
 
 	uv_close((uv_handle_t*)req, nullptr);
 
